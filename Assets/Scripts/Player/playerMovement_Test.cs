@@ -48,8 +48,6 @@ public class playerMovement_Test : MonoBehaviour
     {
         if (isDashing)
         {
-            rb.gravityScale = 0;
-
             if (Time.time > dashTime)
             {
                 isDashing = false;
