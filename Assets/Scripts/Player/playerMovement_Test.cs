@@ -48,6 +48,8 @@ public class playerMovement_Test : MonoBehaviour
     {
         if (isDashing)
         {
+            rb.gravityScale = 0;
+
             if (Time.time > dashTime)
             {
                 isDashing = false;
@@ -68,7 +70,7 @@ public class playerMovement_Test : MonoBehaviour
 
         }
 
-        if (rb.linearVelocity.y < 0.25f) //extra gravitation under fall
+        if (rb.linearVelocity.y < 0.25f && !isDashing) //extra gravitation under fall
         {
             rb.gravityScale = originalGravity * fallingGravityMult; 
         }
