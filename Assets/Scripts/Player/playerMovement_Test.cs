@@ -19,6 +19,7 @@ public class playerMovement_Test : MonoBehaviour
     [SerializeField] private float dashTime;
     [SerializeField] private int dashCount = 0;
     [SerializeField] private int dashMax = 1;
+    [SerializeField] private float fallingGravityMult = 1.5f;
 
     private bool isFacingRight = true;
 
@@ -26,15 +27,23 @@ public class playerMovement_Test : MonoBehaviour
     [SerializeField] private int jumpCount = 0;
     [SerializeField] private int maxJump = 2;
 
+    //KAMERA
+    private CameraFollowObject _cameraFollowObject;
+    [SerializeField] private GameObject _cameraFollowGO;
+    private float _fallSpeedYDampingChangeThreshold;
+
     private float originalGravity;
 
     private void Start()
     {
         currentSpeed = baseSpeed;
         originalGravity = rb.gravityScale;
+
+        //KAMERA
+        _cameraFollowObject = _cameraFollowGO.GetComponent<CameraFollowObject>(); 
+        _fallSpeedYDampingChangeThreshold = CameraManager.instance._fallSpeedYDampingChangeThreshold;
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (isDashing)
@@ -42,7 +51,7 @@ public class playerMovement_Test : MonoBehaviour
             if (Time.time > dashTime)
             {
                 isDashing = false;
-                currentSpeed = baseSpeed;
+                currentSpeed = maxSpeed; //bevara momentum
                 rb.gravityScale = originalGravity;
             }
         }
@@ -57,6 +66,15 @@ public class playerMovement_Test : MonoBehaviour
                 currentSpeed = baseSpeed;
             }
 
+        }
+
+        if (rb.linearVelocity.y < 0.25f) //extra gravitation under fall
+        {
+            rb.gravityScale = originalGravity * fallingGravityMult; 
+        }
+        else if (!isDashing)
+        {
+            rb.gravityScale = originalGravity;
         }
 
         rb.linearVelocity = new Vector2(horizontal * currentSpeed, rb.linearVelocity.y);
@@ -109,12 +127,20 @@ public class playerMovement_Test : MonoBehaviour
         return Physics2D.OverlapCircle(groundCheck.position, 0.1f, groundLayer);
     }
 
-    private void Flip()
+    private void Flip() //ny flip som funkar med kameran
     {
         isFacingRight = !isFacingRight;
-        Vector3 localScale = transform.localScale;
-        localScale.x *= -1;
-        transform.localScale = localScale;
+
+        if (isFacingRight)
+        {
+            transform.rotation = Quaternion.Euler(0, 0, 0);
+        }
+        else
+        {
+            transform.rotation = Quaternion.Euler(0, 180, 0);
+        }
+
+        _cameraFollowObject.CallTurn();
     }
 
     public void Move(InputAction.CallbackContext context)
