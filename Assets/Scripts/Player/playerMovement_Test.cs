@@ -15,9 +15,9 @@ public class playerMovement_Test : MonoBehaviour
     [SerializeField] private float accSpeed = 0.1f;
     [SerializeField] private float dashSpeed = 15f;
     [SerializeField] private float dashDuration = 0.2f;
-    [SerializeField] private bool isDashing = false;
+    [SerializeField] public bool isDashing = false;
     [SerializeField] private float dashTime;
-    [SerializeField] private int dashCount = 0;
+    [SerializeField] public int dashCount = 0;
     [SerializeField] private int dashMax = 1;
     [SerializeField] private float fallingGravityMult = 1.5f;
 
