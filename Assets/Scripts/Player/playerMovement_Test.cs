@@ -13,7 +13,7 @@ public class playerMovement_Test : MonoBehaviour
     [SerializeField] private float maxSpeed = 10f;
     [SerializeField] private float currentSpeed = 0f;
     [SerializeField] private float accSpeed = 0.1f;
-    [SerializeField] private float dashSpeed = 15f;
+    [SerializeField] public float dashSpeed = 15f;
     [SerializeField] private float dashDuration = 0.2f;
     [SerializeField] public bool isDashing = false;
     [SerializeField] private float dashTime;
@@ -147,5 +147,7 @@ public class playerMovement_Test : MonoBehaviour
     {
         horizontal = context.ReadValue<Vector2>().x;
     }
+
+   
 
 }
