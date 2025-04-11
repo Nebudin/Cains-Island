@@ -1,9 +1,18 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Rendering;
 
-public class playerMovement_Test : MonoBehaviour
+public class PlayerMovementEnumBased : MonoBehaviour
 {
+    public enum PlayerState
+    {
+        Idle,
+        Running,
+        Jumping,
+        Falling,
+        Dashing,
+        Walking
+    }
+
     public Rigidbody2D rb;
     public Transform groundCheck;
     public LayerMask groundLayer;
@@ -15,7 +24,6 @@ public class playerMovement_Test : MonoBehaviour
     [SerializeField] private float accSpeed = 0.1f;
     [SerializeField] public float dashSpeed = 15f;
     [SerializeField] private float dashDuration = 0.2f;
-    [SerializeField] public bool isDashing = false;
     [SerializeField] private float dashTime;
     [SerializeField] public int dashCount = 0;
     [SerializeField] private int dashMax = 1;
@@ -27,35 +35,87 @@ public class playerMovement_Test : MonoBehaviour
     [SerializeField] private int jumpCount = 0;
     [SerializeField] private int maxJump = 2;
 
-    //KAMERA
+    private float originalGravity;
+
+    private PlayerState currentState = PlayerState.Idle;
+
+    //Kamera
     private CameraFollowObject _cameraFollowObject;
     [SerializeField] private GameObject _cameraFollowGO;
     private float _fallSpeedYDampingChangeThreshold;
-
-    private float originalGravity;
 
     private void Start()
     {
         currentSpeed = baseSpeed;
         originalGravity = rb.gravityScale;
-
-        //KAMERA
-        _cameraFollowObject = _cameraFollowGO.GetComponent<CameraFollowObject>(); 
+       
+        //Kamera
+        _cameraFollowObject = _cameraFollowGO.GetComponent<CameraFollowObject>();
         _fallSpeedYDampingChangeThreshold = CameraManager.instance._fallSpeedYDampingChangeThreshold;
     }
 
     void Update()
     {
-        if (isDashing)
+        UpdateState();
+        ApplyState();
+        HandleMovement();
+        HandleFlip();
+
+        if (isGrounded())
+        {
+            jumpCount = 0;
+            dashCount = 0;
+        }
+    }
+
+    private void UpdateState()
+    {
+        if (currentState == PlayerState.Dashing)
         {
             if (Time.time > dashTime)
             {
-                isDashing = false;
-                currentSpeed = maxSpeed; //bevara momentum
+                currentState = PlayerState.Running;
+                currentSpeed = maxSpeed;
                 rb.gravityScale = originalGravity;
             }
         }
+        else if (rb.linearVelocity.y < -0.1f)
+        {
+            currentState = PlayerState.Falling;
+        }
+        else if (!Mathf.Approximately(rb.linearVelocity.y, 0f))
+        {
+            currentState = PlayerState.Jumping;
+        }
+        else if (Mathf.Abs(horizontal) > 0.01f)
+        {
+            currentState = PlayerState.Running;
+        }
         else
+        {
+            currentState = PlayerState.Idle;
+        }
+    }
+
+    private void ApplyState()
+    {
+        switch (currentState)
+        {
+            case PlayerState.Falling:
+                rb.gravityScale = originalGravity * fallingGravityMult;
+                break;
+            case PlayerState.Dashing:
+                rb.gravityScale = 0;
+                break;
+            default:
+                rb.gravityScale = originalGravity;
+                break;
+        }
+    }
+
+    private void HandleMovement()
+    {
+        if (currentState != PlayerState.Dashing)
         {
             if (horizontal != 0)
             {
@@ -66,32 +126,7 @@ public class playerMovement_Test : MonoBehaviour
                 currentSpeed = baseSpeed;
             }
 
-        }
-
-        if (rb.linearVelocity.y < 0.25f && !isDashing) //extra gravitation under fall
-        {
-            rb.gravityScale = originalGravity * fallingGravityMult; 
-        }
-        else if (!isDashing)
-        {
-            rb.gravityScale = originalGravity;
-        }
-
-        rb.linearVelocity = new Vector2(horizontal * currentSpeed, rb.linearVelocity.y);
-
-        if (!isFacingRight && horizontal > 0f)
-        {
-            Flip();
-        }
-        else if (isFacingRight && horizontal < 0)
-        {
-            Flip();
-        }
-
-        if (isGrounded())
-        {
-            jumpCount = 0;
-            dashCount = 0;
+            rb.linearVelocity = new Vector2(horizontal * currentSpeed, rb.linearVelocity.y);
         }
     }
 
@@ -111,15 +146,21 @@ public class playerMovement_Test : MonoBehaviour
 
     public void Dash(InputAction.CallbackContext context)
     {
-        if (context.performed && !isDashing && dashCount < dashMax)
+        if (context.performed && currentState != PlayerState.Dashing && dashCount < dashMax)
         {
-            isDashing = true;
-            dashTime = Time.time + dashDuration;
-            currentSpeed = dashSpeed;
-            rb.gravityScale = 0;
-            rb.linearVelocity = new Vector2(transform.localScale.x * dashSpeed, 0);
-            dashCount++;
+            if (horizontal != 0)
+            {
+                currentState = PlayerState.Dashing;
+                dashTime = Time.time + dashDuration;
+                currentSpeed = dashSpeed;
+                rb.linearVelocity = new Vector2(Mathf.Sign(horizontal) * dashSpeed, 0);
+                dashCount++;
+            }
         }
+    }
+    public void Move(InputAction.CallbackContext context)
+    {
+        horizontal = context.ReadValue<Vector2>().x;
     }
 
     private bool isGrounded()
@@ -127,27 +168,22 @@ public class playerMovement_Test : MonoBehaviour
         return Physics2D.OverlapCircle(groundCheck.position, 0.1f, groundLayer);
     }
 
-    private void Flip() //ny flip som funkar med kameran
+    private void HandleFlip()
+    {
+        if (!isFacingRight && horizontal > 0f)
+        {
+            Flip();
+        }
+        else if (isFacingRight && horizontal < 0)
+        {
+            Flip();
+        }
+    }
+    private void Flip()
     {
         isFacingRight = !isFacingRight;
-
-        if (isFacingRight)
-        {
-            transform.rotation = Quaternion.Euler(0, 0, 0);
-        }
-        else
-        {
-            transform.rotation = Quaternion.Euler(0, 180, 0);
-        }
-
+        transform.rotation = Quaternion.Euler(0, isFacingRight ? 0 : 180, 0);
         _cameraFollowObject.CallTurn();
     }
-
-    public void Move(InputAction.CallbackContext context)
-    {
-        horizontal = context.ReadValue<Vector2>().x;
-    }
-
    
-
 }

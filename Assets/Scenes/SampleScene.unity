@@ -401,12 +401,11 @@ MonoBehaviour:
     m_Bits: 8
   horizontal: 0
   baseSpeed: 5
-  maxSpeed: 22
+  maxSpeed: 20
   currentSpeed: 0
   accSpeed: 0.25
   dashSpeed: 35
   dashDuration: 0.2
-  isDashing: 0
   dashTime: 0
   dashCount: 0
   dashMax: 1
@@ -1471,8 +1470,8 @@ Transform:
   m_GameObject: {fileID: 1747135501}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 26.8, y: 5.88, z: -0.02294295}
-  m_LocalScale: {x: 0.64935917, y: 14.265169, z: 1}
+  m_LocalPosition: {x: 27.3296, y: 5.88, z: -0.02294295}
+  m_LocalScale: {x: 1.7085289, y: 14.265169, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1223487954}
@@ -1605,8 +1604,8 @@ Transform:
   m_GameObject: {fileID: 1919402615}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 18.5933, y: 9.84, z: -0.02294295}
-  m_LocalScale: {x: 0.64935917, y: 14.265169, z: 1}
+  m_LocalPosition: {x: 20.1583, y: 9.9, z: -0.02294295}
+  m_LocalScale: {x: 2.4527595, y: 14.265169, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1223487954}
